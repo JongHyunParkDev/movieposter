@@ -15,18 +15,48 @@
         <div
           class="poster"
           :style="{ backgroundColor: poster.color }"
-          @click.stop="handlePosterClick(poster, index)"
+          @click.stop="selectPoster(poster, index)"
         >
           {{ poster.label }}
         </div>
       </div>
+    </div>
+    <div
+      v-show="isSelected"
+      class="mp-btn-area"
+    >
+      <q-btn
+        :loading="preloadLoading"
+        :percentage="preloadPercentage"
+        dark-percentage
+        color="grey-3"
+        text-color="grey-9"
+        round
+        @click="detail"
+      >
+        <q-icon round name="arrow_forward" />
+        <template v-slot:loading>
+          <q-icon name="hourglass_empty" />
+        </template>
+      </q-btn>
+      <q-btn
+        v-if="! preloadLoading"
+        class="mp-btn-exit"
+        color="grey-3"
+        text-color="grey-9"
+        round
+        @click="deSelectPoster"
+      >
+        <q-icon round name="close" />
+      </q-btn>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, type CSSProperties } from 'vue';
-import { useQuasar } from 'quasar'
+import { useQuasar } from 'quasar';
+import { useRouter } from 'vue-router';
 
 // 포스터 인터페이스
 interface Poster {
@@ -40,10 +70,13 @@ interface SwipeDetails {
   distance: { x: number; y: number };
 }
 
+const $r = useRouter();
 const $q = useQuasar();
 
 
-// 초기 포스터 데이터
+const preloadPercentage = ref(0);
+const preloadLoading = ref(false);
+const selectedPoster = ref<Poster | undefined>();
 const posters = ref<Poster[]>([
   { label: 'Poster 1', color: '#111' },
   { label: 'Poster 2', color: '#222' },
@@ -96,8 +129,8 @@ function animate() {
   requestAnimationFrame(animate);
 }
 
-function handlePosterClick(poster: Poster, index: number) {
-  console.log(posterWrapper.value);
+function selectPoster(poster: Poster, index: number) {
+  selectedPoster.value = poster;
   if (container.value) {
     isSelected.value = true;
     container.value.style.backgroundColor = poster.color;
@@ -122,6 +155,36 @@ function handleSwipe(details: SwipeDetails) {
       return;
   }
   velocity.value = deltaX * 0.0005 * speed;
+}
+
+function detail() {
+  preloadLoading.value = true;
+
+  // TODO pinia 로 미리 preload 할 수 있도록 API CALL
+  // 지금은 temp
+  const interval = setInterval(() => {
+    preloadPercentage.value += Math.floor(Math.random() * 8 + 10);
+
+    if (preloadPercentage.value >= 100) {
+      clearInterval(interval)
+      $r.push('/detail');
+      // preloadLoading.value = false;
+    }
+  }, 700)
+}
+
+function deSelectPoster() {
+  selectedPoster.value = undefined;
+
+  if (container.value) {
+    isSelected.value = false;
+    container.value.style.backgroundColor = '#fff';
+    posterWrapper.value.forEach(pw => {
+      pw.classList.remove('hidden');
+      pw.classList.remove('focused');
+    });
+  }
+  animate();
 }
 
 // 초기화 및 정리
@@ -197,7 +260,28 @@ onBeforeUnmount(() => {
         transform: scale(1);
       }
     }
+  }
 
+  > .mp-btn-area {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+
+    .q-btn {
+      border: 2px solid black;
+    }
+
+    .q-icon {
+      border: 1px solid black;
+      padding: 2px;
+      border-radius: 50%;
+    }
 
   }
 }

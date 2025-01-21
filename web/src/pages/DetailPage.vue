@@ -1,11 +1,11 @@
 <template>
-  <poster-main
+  <poster-detail
       title="Example component"
       active
-    ></poster-main>
+    ></poster-detail>
 </template>
 
 <script setup lang="ts">
-import PosterMain from 'components/PosterMain.vue';
+import PosterDetail from 'components/PosterDetail.vue';
 
 </script>
