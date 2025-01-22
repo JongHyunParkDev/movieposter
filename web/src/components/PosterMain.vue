@@ -4,7 +4,7 @@
     ref="container"
     v-touch-swipe.mouse="handleSwipe"
   >
-    <div class="poster-list">
+    <div class="poster-list" v-if="! isLoading">
       <div
         v-for="(poster, index) in posters"
         :key="index"
@@ -14,10 +14,9 @@
       >
         <div
           class="poster"
-          :style="{ backgroundColor: poster.color }"
+          :style="{ backgroundImage: `url(${loadedImages[index].src})` }"
           @click.stop="selectPoster(poster, index)"
         >
-          {{ poster.label }}
         </div>
       </div>
     </div>
@@ -62,6 +61,7 @@ import { useRouter } from 'vue-router';
 interface Poster {
   label: string;
   color: string;
+  url: string;
 }
 
 interface SwipeDetails {
@@ -78,12 +78,13 @@ const preloadPercentage = ref(0);
 const preloadLoading = ref(false);
 const selectedPoster = ref<Poster | undefined>();
 const posters = ref<Poster[]>([
-  { label: 'Poster 1', color: '#111' },
-  { label: 'Poster 2', color: '#222' },
-  { label: 'Poster 3', color: '#333' },
-  { label: 'Poster 4', color: '#444' },
-  { label: 'Poster 5', color: '#555' },
-  { label: 'Poster 6', color: '#666' },
+  { label: 'JESSICAJONES', color: '#21241a', url: 'https://i.namu.wiki/i/8NhWZsd_I1PUlh1ZHhTYJpuIaX_TCTXUAGYb-Ow25s9iEIhAvV2E-e0Mbkkp6dKFGA63ZmY-pnrvnBJsIjERTQ.webp'},
+  { label: 'ENCANTO', color: '#1d3916', url: 'https://i.namu.wiki/i/TsXyWEKfKDbTN3PzgGVMIFy3njcpnA7sbUMJs0PQMJ7RxyyIrXLTFMojcuHnME-9JVHtMxIHjUJJp_G1TS8rvQ.webp'},
+  { label: 'ALADDIN', color: '#030333', url: 'https://i.namu.wiki/i/CAoD-76vT_Hi0medFcJyj7VASYDAcMSAwjZDYU8dEb1kSj-aTjvkUlGaww-Wi1kpRqELbMRQrDnpbE1-blPocg.webp'},
+  { label: 'HOTEL', color: '#a48f9f', url: 'https://i.namu.wiki/i/KZ2cIBhRpZEiUg7GSijRIP8O-_ZykNK_W9v5pjWF3EWAYcR6Qr735VOhjZTqhPRLda-iM9CsYEoz52eDyo5x2A.webp'},
+  { label: 'UP', color: '#62a1d3', url: 'https://i.namu.wiki/i/4DkMdeXBl7OG92APaEzGL9eAsS4e42gTL0Vpqv5fqRitojQEzYiacpTW_UDl0Hhv-GPlkhEzqGqv-nJjaGvD4w.webp'},
+  { label: 'YOU', color: '#798358', url: 'https://i.namu.wiki/i/DXOfXzK0uE6LCaRVlLIAhPnAOR8uFhRzekrpGZXpQQC9BEoQOr6uzR-iZd7tARosV4oHCsqLeLe7vea8pcPiCg.webp' },
+  { label: 'HER', color: '#b8123c', url: 'https://i.namu.wiki/i/RFGP8J7Y2Ihr0fZI2AoLlHxM1AiN1SlrD29gWxAqyPxPvZfV5-IgUiWr7-QeKGKGCJF2NDZjBe1aZvHWl5nBXw.webp' },
 ]);
 
 // DOM 요소 참조
@@ -93,8 +94,25 @@ const currentAngle = ref(0);
 const isSelected = ref(false);
 
 const velocity = ref(0);
-const radiusPersent = 0.15;
+const radiusPersent = 0.2;
 const speed = $q.platform.is.desktop ? 2: 20;
+
+const loadedImages = ref<HTMLImageElement[]>([]);
+const isLoading = ref(true);
+
+async function preloadImages(posters: Poster[]) {
+  return Promise.all(posters.map(async (poster) => {
+    const img = new Image();
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error(`Failed to load: ${poster.label}`));
+      img.src = poster.url;
+    });
+    return img;
+  }));
+}
+
+
 
 // 포스터 위치 계산
 const getPosterPosition = (index: number): CSSProperties  => {
@@ -175,7 +193,7 @@ function deSelectPoster() {
 
   if (container.value) {
     isSelected.value = false;
-    container.value.style.backgroundColor = '#fff';
+    container.value.style.backgroundColor = '#ddd';
     posterWrapper.value.forEach(pw => {
       pw.classList.remove('hidden');
       pw.classList.remove('focused');
@@ -185,7 +203,11 @@ function deSelectPoster() {
 }
 
 // 초기화 및 정리
-onMounted(() => {
+onMounted(async () => {
+  isLoading.value = true;
+  loadedImages.value = await preloadImages(posters.value);
+  console.log(loadedImages);
+  isLoading.value = false;
   animate();
 });
 
@@ -204,6 +226,7 @@ onBeforeUnmount(() => {
   height: 100%;
   width: 100%;
   overflow: hidden;
+  background-color: #ddd;
   transition: background 1s linear;
 
   > .poster-list {
@@ -213,11 +236,12 @@ onBeforeUnmount(() => {
 
     > .poster-wrapper {
       position: absolute;
-      width: 12%;
-      height: 36%;
+      width: 15%;
+      height: 45%;
       display: flex;
       align-items: center;
       justify-content: center;
+      border-radius: 10px;
 
       > .poster {
         width: 100%;
@@ -231,6 +255,7 @@ onBeforeUnmount(() => {
         border-radius: 10px;
         border: 1px solid white;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        background-size: cover;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
       }
 
