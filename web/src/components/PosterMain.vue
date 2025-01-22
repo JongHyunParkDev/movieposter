@@ -84,9 +84,6 @@ const posters = ref<Poster[]>([
   { label: 'Poster 4', color: '#444' },
   { label: 'Poster 5', color: '#555' },
   { label: 'Poster 6', color: '#666' },
-  { label: 'Poster 7', color: '#777' },
-  { label: 'Poster 8', color: '#888' },
-  { label: 'Poster 9', color: '#999' },
 ]);
 
 // DOM 요소 참조
@@ -197,7 +194,7 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .container {
   position: absolute;
   top: 0;
