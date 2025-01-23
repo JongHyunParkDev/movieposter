@@ -1,6 +1,5 @@
 <template>
   <poster-main
-      title="Example component"
       active
     ></poster-main>
 </template>

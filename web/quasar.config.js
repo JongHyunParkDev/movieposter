@@ -12,7 +12,8 @@
 const { configure } = require('quasar/wrappers');
 const path = require('path');
 
-module.exports = configure(function (/* ctx */) {
+module.exports = configure(function ( ctx ) {
+  console.log(ctx);
   return {
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
     // preFetch: true,
@@ -60,7 +61,11 @@ module.exports = configure(function (/* ctx */) {
 
       // publicPath: '/',
       // analyze: true,
-      // env: {},
+      env: {
+        API: ctx.dev
+          ? 'http://localhost:80'
+          : 'https://api.movieposter.kro.kr'
+      },
       // rawDefine: {}
       // ignorePublicFolder: true,
       // minify: false,

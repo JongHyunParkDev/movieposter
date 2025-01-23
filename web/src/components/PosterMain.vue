@@ -3,8 +3,9 @@
     class="container"
     ref="container"
     v-touch-swipe.mouse="handleSwipe"
+    v-if="! isLoading"
   >
-    <div class="poster-list" v-if="! isLoading">
+    <div class="poster-list">
       <div
         v-for="(poster, index) in posters"
         :key="index"
@@ -49,6 +50,15 @@
         <q-icon round name="close" />
       </q-btn>
     </div>
+  </div>
+  <div
+      v-else
+      class="spinner"
+    >
+    <q-spinner
+      color="primary"
+      size="5em"
+    />
   </div>
 </template>
 
@@ -95,7 +105,7 @@ const isSelected = ref(false);
 
 const velocity = ref(0);
 const radiusPersent = 0.2;
-const speed = $q.platform.is.desktop ? 2: 20;
+const speed = $q.platform.is.desktop ? 2 : 20;
 
 const loadedImages = ref<HTMLImageElement[]>([]);
 const isLoading = ref(true);
@@ -111,8 +121,6 @@ async function preloadImages(posters: Poster[]) {
     return img;
   }));
 }
-
-
 
 // 포스터 위치 계산
 const getPosterPosition = (index: number): CSSProperties  => {
@@ -183,7 +191,6 @@ function detail() {
     if (preloadPercentage.value >= 100) {
       clearInterval(interval)
       $r.push('/detail');
-      // preloadLoading.value = false;
     }
   }, 700)
 }
@@ -206,7 +213,6 @@ function deSelectPoster() {
 onMounted(async () => {
   isLoading.value = true;
   loadedImages.value = await preloadImages(posters.value);
-  console.log(loadedImages);
   isLoading.value = false;
   animate();
 });
@@ -257,16 +263,18 @@ onBeforeUnmount(() => {
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         background-size: cover;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
-      }
 
-      > .poster:hover {
-        transform: scale(1.2);
-        z-index: 10;
-        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        &:hover {
+          transform: scale(1.2);
+        }
       }
 
       > .hidden {
         display: none;
+      }
+
+      &:hover {
+        z-index: 100;
       }
     }
 
@@ -306,5 +314,18 @@ onBeforeUnmount(() => {
     }
 
   }
+}
+
+.spinner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>
