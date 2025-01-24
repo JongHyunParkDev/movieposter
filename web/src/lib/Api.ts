@@ -44,6 +44,31 @@ export const Api = {
         params = params ? { data: params } : undefined;
         return apiProcess(axios.delete(apiPrefix + url, appendAxiosConfig(params, config)));
     },
+    postWithFiles: (url: string, params?: CustomObejct, config?: CustomAxiosRequestConfig) => {
+        if (params === undefined) params = {};
+        return Api.post(url, params,
+            appendAxiosConfig(Object.assign({}, config),
+            {
+                headers:
+                    {
+                        'Content-Type': undefined
+                    },
+                transformRequest: function (data)
+                {
+                    const formData = new FormData();
+                    for (const key in data) if (Object.hasOwnProperty.call(data, key))
+                    {
+                        const value = data[key];
+                        if (key === 'files')
+                            for (let i = 0; i < value.length; i++)
+                                formData.append(key, value[i]);
+                        else
+                            formData.append(key, value);
+                    }
+                    return formData;
+                }
+            }));
+    },
 };
 
 function appendAxiosConfig(axiosConfig?: CustomObejct, config?: CustomAxiosRequestConfig) {
