@@ -3,7 +3,7 @@
     class="container"
     ref="container"
     v-touch-swipe.mouse="handleSwipe"
-    v-if="! isLoading"
+    v-if="!isLoading"
   >
     <div class="poster-list">
       <div
@@ -17,14 +17,10 @@
           class="poster"
           :style="{ backgroundImage: `url(${loadedImages[index].src})` }"
           @click.stop="selectPoster(poster, index)"
-        >
-        </div>
+        ></div>
       </div>
     </div>
-    <div
-      v-show="isSelected"
-      class="mp-btn-area"
-    >
+    <div v-show="isSelected" class="btn-area">
       <q-btn
         :loading="preloadLoading"
         :percentage="preloadPercentage"
@@ -40,7 +36,7 @@
         </template>
       </q-btn>
       <q-btn
-        v-if="! preloadLoading"
+        v-if="!preloadLoading"
         class="mp-btn-exit"
         color="grey-3"
         text-color="grey-9"
@@ -51,14 +47,8 @@
       </q-btn>
     </div>
   </div>
-  <div
-      v-else
-      class="spinner"
-    >
-    <q-spinner
-      color="primary"
-      size="5em"
-    />
+  <div v-else class="spinner">
+    <q-spinner color="primary" size="5em" />
   </div>
 </template>
 
@@ -66,13 +56,10 @@
 import { ref, onMounted, onBeforeUnmount, type CSSProperties } from 'vue';
 import { useQuasar } from 'quasar';
 import { useRouter } from 'vue-router';
-
-// 포스터 인터페이스
-interface Poster {
-  label: string;
-  color: string;
-  url: string;
-}
+import { Api } from 'src/lib/Api';
+import { Poster } from 'src/type/PosterTypes';
+import { useFileStore } from 'src/stores/FileStore';
+import { PosterDetailFile } from 'src/type/PosterTypes';
 
 interface SwipeDetails {
   direction: string;
@@ -82,20 +69,12 @@ interface SwipeDetails {
 
 const $r = useRouter();
 const $q = useQuasar();
-
+const fileStore = useFileStore();
 
 const preloadPercentage = ref(0);
 const preloadLoading = ref(false);
-const selectedPoster = ref<Poster | undefined>();
-const posters = ref<Poster[]>([
-  { label: 'JESSICAJONES', color: '#21241a', url: 'https://i.namu.wiki/i/8NhWZsd_I1PUlh1ZHhTYJpuIaX_TCTXUAGYb-Ow25s9iEIhAvV2E-e0Mbkkp6dKFGA63ZmY-pnrvnBJsIjERTQ.webp'},
-  { label: 'ENCANTO', color: '#1d3916', url: 'https://i.namu.wiki/i/TsXyWEKfKDbTN3PzgGVMIFy3njcpnA7sbUMJs0PQMJ7RxyyIrXLTFMojcuHnME-9JVHtMxIHjUJJp_G1TS8rvQ.webp'},
-  { label: 'ALADDIN', color: '#030333', url: 'https://i.namu.wiki/i/CAoD-76vT_Hi0medFcJyj7VASYDAcMSAwjZDYU8dEb1kSj-aTjvkUlGaww-Wi1kpRqELbMRQrDnpbE1-blPocg.webp'},
-  { label: 'HOTEL', color: '#a48f9f', url: 'https://i.namu.wiki/i/KZ2cIBhRpZEiUg7GSijRIP8O-_ZykNK_W9v5pjWF3EWAYcR6Qr735VOhjZTqhPRLda-iM9CsYEoz52eDyo5x2A.webp'},
-  { label: 'UP', color: '#62a1d3', url: 'https://i.namu.wiki/i/4DkMdeXBl7OG92APaEzGL9eAsS4e42gTL0Vpqv5fqRitojQEzYiacpTW_UDl0Hhv-GPlkhEzqGqv-nJjaGvD4w.webp'},
-  { label: 'YOU', color: '#798358', url: 'https://i.namu.wiki/i/DXOfXzK0uE6LCaRVlLIAhPnAOR8uFhRzekrpGZXpQQC9BEoQOr6uzR-iZd7tARosV4oHCsqLeLe7vea8pcPiCg.webp' },
-  { label: 'HER', color: '#b8123c', url: 'https://i.namu.wiki/i/RFGP8J7Y2Ihr0fZI2AoLlHxM1AiN1SlrD29gWxAqyPxPvZfV5-IgUiWr7-QeKGKGCJF2NDZjBe1aZvHWl5nBXw.webp' },
-]);
+const selectedPoster = ref<Poster>();
+const posters = ref<Poster[]>([]);
 
 // DOM 요소 참조
 const container = ref<HTMLElement | null>(null);
@@ -111,27 +90,29 @@ const loadedImages = ref<HTMLImageElement[]>([]);
 const isLoading = ref(true);
 
 async function preloadImages(posters: Poster[]) {
-  return Promise.all(posters.map(async (poster) => {
-    const img = new Image();
-    await new Promise<void>((resolve, reject) => {
-      img.onload = () => resolve();
-      img.onerror = () => reject(new Error(`Failed to load: ${poster.label}`));
-      img.src = poster.url;
-    });
-    return img;
-  }));
+  return Promise.all(
+    posters.map(async (poster) => {
+      const img = new Image();
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error(`Failed to load: ${poster.name}`));
+        img.src = `${process.env.API}/file/${poster.fileName}`;
+      });
+      return img;
+    })
+  );
 }
 
 // 포스터 위치 계산
-const getPosterPosition = (index: number): CSSProperties  => {
-  if (! container.value) return {};
+const getPosterPosition = (index: number): CSSProperties => {
+  if (!container.value) return {};
   const total = posters.value.length;
   const theta = (index / total) * 2 * Math.PI + currentAngle.value;
   const centerX = container.value.clientWidth / 2;
   const centerY = container.value.clientHeight;
   const radius = container.value.clientWidth * radiusPersent;
-  const offsetY = container.value.clientHeight * 0.3 / 2;
-  const offsetX = container.value.clientWidth * 0.1 / 2;
+  const offsetY = (container.value.clientHeight * 0.3) / 2;
+  const offsetX = (container.value.clientWidth * 0.1) / 2;
   const x = centerX + radius * Math.cos(theta) - offsetX;
   const y = centerY + radius * Math.sin(theta) - offsetY;
 
@@ -140,7 +121,7 @@ const getPosterPosition = (index: number): CSSProperties  => {
     top: `${y}px`,
     transform: `rotate(${theta + Math.PI / 2}rad)`,
     position: 'absolute',
-  }
+  };
 };
 
 // 애니메이션 관리
@@ -157,7 +138,7 @@ function selectPoster(poster: Poster, index: number) {
   if (container.value) {
     isSelected.value = true;
     container.value.style.backgroundColor = poster.color;
-    posterWrapper.value.forEach(pw => {
+    posterWrapper.value.forEach((pw) => {
       pw.classList.add('hidden');
     });
     posterWrapper.value[index].classList.add('focused');
@@ -166,13 +147,14 @@ function selectPoster(poster: Poster, index: number) {
 }
 
 function handleSwipe(details: SwipeDetails) {
+  if (isSelected.value) return;
   let deltaX;
   switch (details.direction) {
     case 'right':
       deltaX = details.distance.x;
       break;
     case 'left':
-      deltaX = - details.distance.x;
+      deltaX = -details.distance.x;
       break;
     default:
       return;
@@ -180,19 +162,13 @@ function handleSwipe(details: SwipeDetails) {
   velocity.value = deltaX * 0.0005 * speed;
 }
 
-function detail() {
+async function detail() {
   preloadLoading.value = true;
-
-  // TODO pinia 로 미리 preload 할 수 있도록 API CALL
-  // 지금은 temp
-  const interval = setInterval(() => {
-    preloadPercentage.value += Math.floor(Math.random() * 8 + 10);
-
-    if (preloadPercentage.value >= 100) {
-      clearInterval(interval)
-      $r.push('/detail');
-    }
-  }, 700)
+  const loadFiles: Array<PosterDetailFile> = await Api.get(
+    `/poster/${selectedPoster.value?.id}`
+  );
+  loadFiles.forEach((file) => fileStore.add(file));
+  $r.push('/detail');
 }
 
 function deSelectPoster() {
@@ -201,7 +177,7 @@ function deSelectPoster() {
   if (container.value) {
     isSelected.value = false;
     container.value.style.backgroundColor = '#ddd';
-    posterWrapper.value.forEach(pw => {
+    posterWrapper.value.forEach((pw) => {
       pw.classList.remove('hidden');
       pw.classList.remove('focused');
     });
@@ -211,6 +187,9 @@ function deSelectPoster() {
 
 // 초기화 및 정리
 onMounted(async () => {
+  const loadPosters = await Api.get('/posters');
+  posters.value = loadPosters;
+
   isLoading.value = true;
   loadedImages.value = await preloadImages(posters.value);
   isLoading.value = false;
@@ -292,7 +271,7 @@ onBeforeUnmount(() => {
     }
   }
 
-  > .mp-btn-area {
+  > .btn-area {
     position: absolute;
     top: 0;
     bottom: 0;
@@ -304,15 +283,15 @@ onBeforeUnmount(() => {
     gap: 10px;
 
     .q-btn {
-      border: 2px solid black;
+      border: 2px solid $dark;
+      background-color: $dark;
     }
 
     .q-icon {
-      border: 1px solid black;
+      border: 1px solid $dark;
       padding: 2px;
       border-radius: 50%;
     }
-
   }
 }
 

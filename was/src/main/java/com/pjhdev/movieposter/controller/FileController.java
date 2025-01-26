@@ -18,9 +18,9 @@ import java.util.UUID;
 public class FileController {
     private final FileService fileService;
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Resource> getFile(@PathVariable UUID id) {
-        Resource resource = fileService.getFile(id);
+    @GetMapping("/{fileName}")
+    public ResponseEntity<Resource> getFile(@PathVariable String fileName) {
+        Resource resource = fileService.getFile(fileName);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")

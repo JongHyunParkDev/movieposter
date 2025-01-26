@@ -14,6 +14,10 @@ public class PosterDetailEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @ManyToOne
+    @JoinColumn(name = "poster_id")
+    private PosterEntity poster;
+
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "file_id")
     private FileEntity file;

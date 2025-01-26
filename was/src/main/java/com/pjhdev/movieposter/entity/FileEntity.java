@@ -17,8 +17,10 @@ import java.util.UUID;
 public class FileEntity {
     @Id
     private UUID id;
+    @Enumerated(EnumType.STRING)
     private FileType type; // image or audio
     private String contentType;
+    private String extension;
     private long size;
 
     @PrePersist
@@ -27,9 +29,10 @@ public class FileEntity {
     }
 
     @Builder
-    public FileEntity(FileType type, String contentType, long size) {
+    public FileEntity(FileType type, String contentType, String extension, long size) {
         this.type = type;
         this.contentType = contentType;
+        this.extension = extension;
         this.size = size;
     }
 }

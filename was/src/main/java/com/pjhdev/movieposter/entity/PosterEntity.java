@@ -25,13 +25,12 @@ public class PosterEntity {
     @Column(nullable = false)
     private String userId;
 
+    @OneToMany(mappedBy = "poster")
+    private List<PosterDetailEntity> posterDetailEntities;
+
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "file_id")
     private FileEntity file;
-
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "poster_id") // 외래 키 설정
-    private List<PosterDetailEntity> posterDetailEntities;
 
     @CreationTimestamp // 시간이 자동 입력
     private LocalDateTime createDatetime;

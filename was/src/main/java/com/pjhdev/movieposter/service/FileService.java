@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -17,6 +18,7 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -29,21 +31,22 @@ public class FileService {
                 .size(file.getSize())
                 .type(FileUtil.getFileType(file.getContentType()))
                 .contentType(file.getContentType())
+                .extension(StringUtils.getFilenameExtension(file.getOriginalFilename()))
                 .build();
         return fileRepository.save(fe);
     }
 
-    public void upload(MultipartFile file) {
+    public void upload(MultipartFile file, UUID fileId) {
         try {
-            Path path = Paths.get(UPLOAD_PATH + UUID.randomUUID());
+            Path path = Paths.get(UPLOAD_PATH + fileId + "." + StringUtils.getFilenameExtension(file.getOriginalFilename()));
             Files.copy(file.getInputStream(), path);
         } catch (IOException e) {
             throw new ApiException(ExceptionCodeEnum.FAILED_UPLOAD, file.getName());
         }
     }
 
-    public Resource getFile(UUID id) {
-        Path path = Paths.get(UPLOAD_PATH + id);
+    public Resource getFile(String fileName) {
+        Path path = Paths.get(UPLOAD_PATH + fileName);
         try {
             return new UrlResource(path.toUri());
         } catch (MalformedURLException e) {
@@ -51,6 +54,18 @@ public class FileService {
         }
     }
 
-    @Value("app.upload-path")
+    public void deleteFiles(List<String> deleteFiles) {
+        try {
+            for (String deleteFile : deleteFiles) {
+                Path path = Paths.get(UPLOAD_PATH + deleteFile);
+                Files.deleteIfExists(path);
+            }
+        } catch (IOException e) {
+            throw new ApiException(ExceptionCodeEnum.FAILED_FILE_DELETE);
+        }
+
+    }
+
+    @Value("${app.upload-path}")
     private String UPLOAD_PATH;
 }

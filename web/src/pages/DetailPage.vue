@@ -1,7 +1,7 @@
 <template>
   <poster-detail
-      active
-    ></poster-detail>
+    active
+  ></poster-detail>
 </template>
 
 <script setup lang="ts">

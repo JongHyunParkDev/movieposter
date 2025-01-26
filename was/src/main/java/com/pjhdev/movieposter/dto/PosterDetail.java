@@ -10,11 +10,11 @@ import java.util.UUID;
 
 @Data
 public class PosterDetail {
-    UUID fileName;
+    String fileName;
     FileType fileType;
 
     public PosterDetail(PosterDetailEntity pde) {
-        this.fileName = pde.getFile().getId();
+        this.fileName = pde.getFile().getId() + "." + pde.getFile().getExtension();
         this.fileType = pde.getFile().getType();
     }
 }

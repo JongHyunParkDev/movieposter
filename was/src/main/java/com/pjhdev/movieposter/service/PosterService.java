@@ -14,6 +14,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -42,7 +45,7 @@ public class PosterService {
     }
 
     @Transactional
-    public void savePoster(RequestPoster requestPoster, MultipartFile file, String userId) {
+    public PosterEntity savePoster(RequestPoster requestPoster, MultipartFile file, String userId) {
         FileEntity fe = fileService.save(file);
 
         PosterEntity pe = PosterEntity.builder()
@@ -53,7 +56,9 @@ public class PosterService {
                 .build();
         posterRepository.save(pe);
 
-        fileService.upload(file);
+        fileService.upload(file, fe.getId());
+
+        return pe;
     }
 
     @Transactional
@@ -61,25 +66,46 @@ public class PosterService {
         PosterEntity pe = posterRepository.findById(posterId).orElseThrow(()
                 -> new ApiException(ExceptionCodeEnum.NOT_FOUND));
 
+        if (!pe.getPosterDetailEntities().isEmpty())
+            throw new ApiException(ExceptionCodeEnum.FAILED_POSTER_DETAIL, "Detail Poster already exists");
+
         List<PosterDetailEntity> pdeList = files.stream()
                 .map(file -> {
                     FileEntity fileEntity = fileService.save(file);
                     PosterDetailEntity posterDetailEntity = new PosterDetailEntity();
+                    posterDetailEntity.setPoster(pe);
                     posterDetailEntity.setFile(fileEntity);
                     return posterDetailEntity;
                 })
                 .collect(Collectors.toList());
 
+        posterDetailRepository.saveAll(pdeList);
         pe.setPosterDetailEntities(pdeList);
 
-        posterDetailRepository.saveAll(pdeList);
-
-        files.forEach(fileService::upload);
+//        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+//            @Override
+//            public void afterCommit() {
+//
+//            }
+//        });
+        for (int i = 0; i < files.size(); i++) {
+            fileService.upload(files.get(i), pdeList.get(i).getFile().getId());
+        }
     }
 
     // 아에 따로 빼야할 수도?
 
+    @Transactional
     public void deletePoster(Long id) {
+        List<String> deleteFileNames = new ArrayList<>();
+        PosterEntity pe = posterRepository.findById(id).orElseThrow(() -> new ApiException(ExceptionCodeEnum.NOT_FOUND));
+
+        pe.getPosterDetailEntities().forEach(pde -> {
+            deleteFileNames.add(pde.getFile().getId() + "." + pde.getFile().getExtension());
+        });
         posterRepository.deleteById(id);
+
+        // 삭제 중 에러 나올 수 있음으로
+        fileService.deleteFiles(deleteFileNames);
     }
 }

@@ -12,7 +12,9 @@ public enum ExceptionCodeEnum {
     INVALID_ARGUMENT(1101, "INVALID ARGUMENT"),
 
     FAILED_UPLOAD(1200, "FAILED UPLOAD"),
-    NOT_APPLY_FILE(1201, "NOT APPLY FILE");
+    NOT_APPLY_FILE(1201, "NOT APPLY FILE"),
+    FAILED_FILE_DELETE(1202, "FAILED FILE DELETE"),
+    FAILED_POSTER_DETAIL(1203, "FAILED POSTER DETAIL");
 
     private final int code;
     private final String message;

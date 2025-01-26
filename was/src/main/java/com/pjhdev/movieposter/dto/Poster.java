@@ -11,14 +11,14 @@ import java.util.UUID;
 @Data
 public class Poster {
     long id;
-    UUID fileName;
+    String fileName;
     String name;
     String color;
     LocalDateTime createdDatetime;
 
     public Poster(PosterEntity pe) {
         this.id = pe.getId();
-        this.fileName = pe.getFile().getId();
+        this.fileName = pe.getFile().getId() + "." + pe.getFile().getExtension();
         this.name = pe.getName();
         this.color = pe.getColor();
         this.createdDatetime = pe.getCreateDatetime();
