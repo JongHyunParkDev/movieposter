@@ -13,10 +13,10 @@
       @click="autoplay = !autoplay"
     >
       <q-carousel-slide
-        v-for="(imageSrc, index) in images"
+        v-for="(image, index) in preloadImage"
         :key="index"
         :name="index"
-        :img-src="imageSrc"
+        :img-src="image.src"
       />
     </q-carousel>
     <div class="btn-area">
@@ -39,12 +39,23 @@ import { useRouter } from 'vue-router';
 import { useFileStore } from 'src/stores/FileStore';
 
 let audioSrc;
-const images = ref<Array<string>>([]);
+const images: Array<string> = [];
+const preloadImage = ref<Array<HTMLImageElement>>([]);
 const fileStore = useFileStore();
 fileStore.files.forEach((file) => {
   if (file.fileType === 'AUDIO') audioSrc = file.fileName;
-  else images.value.push(`${process.env.API}/file/${file.fileName}`);
+  else images.push(`${process.env.API}/file/${file.fileName}`);
 });
+
+const preLoadImg = (images: Array<string>) => {
+  images.forEach((image) => {
+    const img = new Image();
+    img.src = image;
+    preloadImage.value.push(img);
+  });
+};
+
+preLoadImg(images);
 
 const $r = useRouter();
 const audio = new Audio(`${process.env.API}/file/${audioSrc}`);

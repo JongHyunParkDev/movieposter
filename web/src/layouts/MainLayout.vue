@@ -13,10 +13,9 @@
     </q-page-container>
   </q-layout>
   <div v-if="!$q.fullscreen.isActive" class="fullscreen-area">
-    <q-btn @click="toggleFullScreen"> 전체화면 </q-btn>
+    <q-btn color="primary" @click="toggleFullScreen"> 전체화면 </q-btn>
   </div>
 </template>
-
 <script setup lang="ts">
 import { useQuasar } from 'quasar';
 
@@ -24,7 +23,6 @@ const $q = useQuasar();
 
 function toggleFullScreen() {
   $q.fullscreen.toggle();
-  console.log($q.fullscreen);
 }
 </script>
 <style lang="scss">
