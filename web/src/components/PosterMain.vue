@@ -11,6 +11,7 @@
         :key="index"
         ref="posterWrapper"
         class="poster-wrapper"
+        :class="{ mobile: $q.platform.is.mobile }"
         :style="getPosterPosition(index)"
       >
         <div
@@ -83,7 +84,7 @@ const currentAngle = ref(0);
 const isSelected = ref(false);
 
 const velocity = ref(0);
-const radiusPersent = 0.2;
+const radiusPersent = $q.platform.is.desktop ? 0.25 : 0.25;
 const speed = $q.platform.is.desktop ? 2 : 20;
 
 const loadedImages = ref<HTMLImageElement[]>([]);
@@ -221,8 +222,8 @@ onBeforeUnmount(() => {
 
     > .poster-wrapper {
       position: absolute;
-      width: 15%;
-      height: 45%;
+      width: 20%;
+      height: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -255,6 +256,11 @@ onBeforeUnmount(() => {
       &:hover {
         z-index: 100;
       }
+    }
+
+    > .mobile {
+      width: 24%;
+      height: 60%;
     }
 
     > .focused {
