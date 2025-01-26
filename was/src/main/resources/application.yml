@@ -1,4 +1,24 @@
 spring:
   application:
     name: movieposter
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/sppd
+    username: sppd
+    password: sppd1234!
+  jpa:
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+    hibernate:
+      ddl-auto: update #create validate update
 
+server:
+  port: 443
+
+app:
+  home-dir: ${user.dir}
+  log-dir: ${app.home-dir}/log
+  log-file-name: was
+  upload-path: D:\StudyPath\upload

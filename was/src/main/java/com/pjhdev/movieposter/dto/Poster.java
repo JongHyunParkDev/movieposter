@@ -1,13 +1,26 @@
 package com.pjhdev.movieposter.dto;
 
+import com.pjhdev.movieposter.entity.PosterEntity;
+import lombok.Builder;
 import lombok.Data;
+
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 public class Poster {
     long id;
-    String url;
-    String color;
+    UUID fileName;
     String name;
-    LocalDate createdDate;
+    String color;
+    LocalDateTime createdDatetime;
+
+    public Poster(PosterEntity pe) {
+        this.id = pe.getId();
+        this.fileName = pe.getFile().getId();
+        this.name = pe.getName();
+        this.color = pe.getColor();
+        this.createdDatetime = pe.getCreateDatetime();
+    }
 }
