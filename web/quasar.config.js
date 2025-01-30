@@ -57,7 +57,8 @@ module.exports = configure(function (ctx) {
       env: {
         API: ctx.dev
           ? 'http://172.30.1.72:80'
-          : 'https://api.movieposter.kro.kr',
+          : //: 'https://api.movieposter.kro.kr',  // 따로 있는 경우
+            '', // WAS 에 포함된 경우
       },
       // rawDefine: {}
       // ignorePublicFolder: true,

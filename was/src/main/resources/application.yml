@@ -29,7 +29,7 @@ app:
   log-dir: ${app.home-dir}/log
   log-file-name: was
   upload-path: D:\StudyPath\upload\
-
+#  corsIpPort: http://localhost:9000
 #logging:
 #  level:
 #    root: trace
