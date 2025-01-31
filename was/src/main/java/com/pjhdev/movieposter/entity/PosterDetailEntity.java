@@ -14,7 +14,7 @@ public class PosterDetailEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "poster_id")
     private PosterEntity poster;
 
