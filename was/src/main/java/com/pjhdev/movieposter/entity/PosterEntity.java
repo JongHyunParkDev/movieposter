@@ -25,7 +25,7 @@ public class PosterEntity {
     @Column(nullable = false)
     private String userId;
 
-    @OneToMany(mappedBy = "poster")
+    @OneToMany(mappedBy = "poster", cascade = CascadeType.ALL)
     private List<PosterDetailEntity> posterDetailEntities;
 
     @OneToOne(cascade = CascadeType.ALL)
