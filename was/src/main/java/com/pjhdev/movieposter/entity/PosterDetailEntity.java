@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashMap;
+import java.util.Objects;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,4 +24,18 @@ public class PosterDetailEntity {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "file_id")
     private FileEntity file;
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PosterDetailEntity that = (PosterDetailEntity) o;
+        return Objects.equals(id, that.id) && Objects.equals(poster, that.poster) && Objects.equals(file, that.file);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, poster, file);
+    }
 }

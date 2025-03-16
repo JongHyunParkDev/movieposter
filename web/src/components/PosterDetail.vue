@@ -59,7 +59,7 @@ preLoadImg(images);
 
 const $r = useRouter();
 const audio = new Audio(`${process.env.API}/file/${audioSrc}`);
-const slide = ref(1);
+const slide = ref(0);
 const autoplay = ref(true);
 
 const onEnded = () => {
